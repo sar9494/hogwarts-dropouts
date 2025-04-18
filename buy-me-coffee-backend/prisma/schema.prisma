@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int         @id @default(autoincrement())
+  email             String      @unique
+  password          String
+  username          String      @unique
+  receivedDonations Donations[] @relation("RecievedDonation")
+  bankCard          BankCard[]  @relation("BankCards")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  Donations         Donations[]
+  Profile           Profile?
+}
+
+model Donations {
+  id                      Int      @id @default(autoincrement())
+  amount                  Int
+  specialMessage          String
+  socialURLOrBuyMeACoffee String
+  recipientId             Int
+  donorId                 Int
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  donor                   User     @relation("RecievedDonation", fields: [donorId], references: [id])
+  recipient               User     @relation(fields: [recipientId], references: [id])
+}
+
+model Profile {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  about           String
+  avatarImage     String
+  socialMediaURL  String
+  backgroundImage String?  @default("")
+  successMessage  String?  @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  userId          Int      @unique
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+model BankCard {
+  id         Int      @id @default(autoincrement())
+  country    String
+  firstName  String
+  lastName   String
+  cardNumber String   @unique
+  expiryDate String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation("BankCards", fields: [userId], references: [id])
+  userId     Int
+}
